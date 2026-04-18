@@ -607,7 +607,34 @@ async def get_purchases(user_id: str):
 Called after expo-notifications permission granted on the device.
 Token is required for Kafka → Spark → Notification pipeline.
 """
+@app.get("/trending/{area_bucket}")
+async def get_trending(area_bucket: str):
+    """
+    Returns top 5 trending products in user's area.
+    Frontend calls this on home screen load.
+    """
+    doc = await db["trending"].find_one({"area_bucket": area_bucket})
+    if not doc:
+        return {"trending": [], "area_bucket": area_bucket}
+    return {
+        "area_bucket":  area_bucket,
+        "trending":     doc.get("top_products", []),
+        "updated_at":   doc.get("updated_at", "")
+    }
 
+@app.get("/recommendations/{product_id}")
+async def get_recommendations(product_id: str):
+    """
+    Returns 'users who bought this also bought' list.
+    Frontend calls this when product detail modal opens.
+    """
+    doc = await db["recommendations"].find_one({"product_id": product_id})
+    if not doc:
+        return {"recommendations": [], "product_id": product_id}
+    return {
+        "product_id":      product_id,
+        "recommendations": doc.get("recommendations", [])
+    }
 @app.patch("/users/{user_id}/push-token")
 async def update_push_token(user_id: str, req: PushTokenRequest):
     result = await users_collection.update_one(

@@ -3,7 +3,7 @@ import axios from "axios";
 // ─── Replace with your machine's actual local IP ──────────────────────────────
 // Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux) to find it
 // When you deploy to AWS, change this to your EC2 public IP
-const BASE_URL = "http://10.112.105.48:8000";
+const BASE_URL = "http://3.235.251.5:8000";
 
 const api = axios.create({ baseURL: BASE_URL });
 
