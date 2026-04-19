@@ -1,8 +1,12 @@
 import { useEffect } from "react";
+import { Slot } from "expo-router";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
+import { usePushNotifications } from "../hooks/usePushNotifications";
+import NotificationBanner from "../components/NotificationBanner";
+
 function RouteGuard() {
   const { isLoggedIn, user, loading } = useAuth();
   const segments = useSegments();
@@ -66,16 +70,28 @@ function LoadingScreen() {
   );
 }
 
+
+function AppWithNotifications({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+
+  // This registers for push notifications and saves token to backend
+  const { notification } = usePushNotifications(user?.id);
+
+  return <>{children}</>;
+}
+
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <CartProvider>      {/* ← add this */}
-        <_Inner />
+      <CartProvider>
+        <AppWithNotifications>
+         <NotificationBanner /> 
+          <Slot />
+        </AppWithNotifications>
       </CartProvider>
     </AuthProvider>
   );
 }
-
 // Separate inner component so it can read AuthContext
 function _Inner() {
   const { loading } = useAuth();
