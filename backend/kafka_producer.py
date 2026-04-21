@@ -72,7 +72,7 @@ def publish(topic: str, event: dict):
             value=json.dumps(event),
             callback=delivery_report
         )
-        p.poll(0)  # non-blocking
+        p.flush(timeout=5)  # non-blocking
         return True
     except Exception as e:
         print(f"❌ Kafka publish error: {e}")
