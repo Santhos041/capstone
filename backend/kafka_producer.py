@@ -19,15 +19,34 @@ _producer = None
 
 def get_producer():
     global _producer
+
     if _producer is None:
+        print(f"🔌 Connecting to Kafka: {KAFKA_BROKER}")
+
         _producer = Producer({
             "bootstrap.servers": KAFKA_BROKER,
-            "client.id":         "blinkit-producer",
-            "acks":              "all",
-        })
-        print(f"✅ Kafka producer connected to {KAFKA_BROKER}")
-    return _producer
+            "client.id": "blinkit-producer",
 
+            # ✅ Reliability
+            "acks": "all",
+            "retries": 5,
+
+            # ✅ REQUIRED for MSK stability
+            "security.protocol": "PLAINTEXT",
+
+            # 🔥 CRITICAL FIX (timeouts)
+            "message.timeout.ms": 60000,
+            "socket.timeout.ms": 60000,
+            "request.timeout.ms": 30000,
+
+            # ✅ Performance tuning
+            "linger.ms": 10,
+            "batch.num.messages": 1000
+        })
+
+        print(f"✅ Kafka producer connected to {KAFKA_BROKER}")
+
+    return _producer
 # ─── Create topics on startup ─────────────────────────────────────────────────
 
 def create_topics():
@@ -72,7 +91,7 @@ def publish(topic: str, event: dict):
             value=json.dumps(event),
             callback=delivery_report
         )
-        p.flush(timeout=5)  # non-blocking
+        p.flush(timeout=40)  # non-blocking
         return True
     except Exception as e:
         print(f"❌ Kafka publish error: {e}")
